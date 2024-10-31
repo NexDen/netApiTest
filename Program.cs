@@ -1,15 +1,27 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<DersDb>(opt => opt.UseInMemoryDatabase("DersListesi"));
+builder.Services.AddDbContext<DersDb>(opt => opt.UseNpgsql("Host=localhost; Database=postgres; Username=postgres; Password=1234"));
 var app = builder.Build();
 /*
+    DB refeansı:
+        DB adı: postgres
+        DB kullanıcı adı: postgres
+        DB şifresi: 1234
+    Örnek 100 tane ders objesi "./örnek veriler.txt" dosyasında yer almaktadır.
+    
     Api link referansı:
  
-    GET - api/dersler?{id: opsiyonel}&{ad: opsiyonel} => dersler listesinden id ve/veya ad ile uyuşan dersi verir,
-                                                         eğer ad veya id verilmemişse tüm ders listesini verir.
-                                                         
-    POST - api/api/dersler/ (body: Ders) => ders listesine ders ekler, eğer verilen dersin id'sine eşit bir ders varsa hata verir.
+    GET - api/dersler?{id: bağımlı}&{ad: bağımlı} => dersler listesinden id ve/veya ad ile uyuşan dersi verir,
+                                                         eğer ad veya id verilmemişse kabul etmez.
+                                                         id ve/veya ad değişkeni verilmesi zorunludur.
+            
+    GET - api/dersler/page?{pageSize: opsiyonel=20}&{pageNumber: opsiyonel=1} => dersler listesinin belirli bir kısmını
+                                                                            pageSize ve pageNumber değişkenlerine
+                                                                            bağlı olarak verir.
+                                    
+    POST - api/dersler/ (body: Ders) => ders listesine ders ekler, eğer verilen dersin id'sine eşit bir ders varsa hata verir.
     
     DELETE - api/dersler?{id: gerekli} => dersler listesinden belirtilen id'ye sahip olan dersi siler.
     
@@ -31,48 +43,62 @@ app.MapGet("/api/dersler/", async (DersDb db, int id = -1, string ad = "") =>
 {
     if (id != -1 && ad.Length > 0) // eğer hem ad hem de bir id verilmiş ise
     {
-        var ders = await db.Dersler.SingleOrDefaultAsync(x => x.Id == id && x.Ad == ad);
+        var ders = await db.dersler.SingleOrDefaultAsync(x => x.id == id && x.ad == ad);
         return ders != null ? Results.Ok(ders) : Results.NotFound();
     }
-    if (id != -1) return Results.Ok(db.Dersler.FirstOrDefault(x => x.Id == id)); // sadece bir id verilmiş ise
-    if (ad.Length > 0) return Results.Ok(db.Dersler.FirstOrDefault(x => x.Ad == ad)); // sadece bir isim verilmiş ise
-    return Results.Ok(await db.Dersler.ToListAsync()); // hiç bir şey verilmemiş ise
+    if (id != -1){
+        var ders = await db.dersler.SingleOrDefaultAsync(x => x.id == id);
+        return ders != null ? Results.Ok(ders) : Results.NotFound(); // sadece bir id verilmiş ise
+    }
+    if (ad.Length > 0){
+        var ders = await db.dersler.SingleOrDefaultAsync(x => x.ad == ad);
+        return ders != null ? Results.Ok(ders) : Results.NotFound(); // sadece bir id verilmiş ise
+    }
+    return Results.BadRequest("Ad veya ID parametresi verilmelidir.");
 });
+
+app.MapGet("/api/dersler/page", async (DersDb db, int pageNumber = 1, int pageSize = 20) =>
+{
+    var dersler = await db.dersler.ToArrayAsync();
+    return dersler.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    //                       ^ başlangıç indexi ^        
+});
+
 app.MapPost("api/dersler/", async (Ders inputDers, DersDb db) =>
 {
-    var ders = db.Dersler.FirstOrDefault(x => x.Id == inputDers.Id);
-    if (ders != null) return Results.Conflict(ders.Id + " " + "ID'sinde bir ders mevcut."); // önceden tanımlanmış id ile bir ders varsa reddet
-    db.Dersler.Add(inputDers);
+    var ders = db.dersler.FirstOrDefault(x => x.id == inputDers.id);
+    if (ders != null) return Results.Conflict(ders.id + " " + "ID'sinde bir ders mevcut."); // önceden tanımlanmış id ile bir ders varsa reddet
+    db.dersler.Add(inputDers);
     await db.SaveChangesAsync();
-    return Results.Created($"dersler/{inputDers.Id}", inputDers);
+    return Results.Created($"dersler/{inputDers.id}", inputDers);
 });
 app.MapPut("/api/dersler/", async (int id, Ders inputDers, DersDb db) =>
 {
-    var ders = await db.Dersler.FindAsync(id);
+    var ders = await db.dersler.FindAsync(id);
     if (ders == null) return Results.NotFound();
     
-    ders.Ad = inputDers.Ad ?? ders.Ad;
-    ders.Saatler = inputDers.Saatler ?? ders.Saatler;
+    ders.ad = inputDers.ad ?? ders.ad;
+    ders.saatler = inputDers.saatler ?? ders.saatler;
     
     await db.SaveChangesAsync();
     return Results.Ok(ders);
 });
 app.MapPatch("/api/dersler/", async (int id, Ders inputDers, DersDb db) =>
 {
-    var ders = await db.Dersler.FindAsync(id);
+    var ders = await db.dersler.FindAsync(id);
     if (ders == null) return Results.NotFound();
     
-    ders.Ad = inputDers.Ad ?? ders.Ad;
-    ders.Saatler = inputDers.Saatler ?? ders.Saatler;
+    ders.ad = inputDers.ad ?? ders.ad;
+    ders.saatler = inputDers.saatler ?? ders.saatler;
     
     await db.SaveChangesAsync();
     return Results.Ok(ders);
 });
 app.MapDelete("/api/dersler/", async (int id, DersDb db) =>
 {
-    var ders = await db.Dersler.FindAsync(id);
+    var ders = await db.dersler.FindAsync(id);
     if (ders == null) return Results.NotFound();
-    db.Dersler.Remove(ders);
+    db.dersler.Remove(ders);
     await db.SaveChangesAsync();
     return Results.Ok();
 });

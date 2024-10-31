@@ -1,7 +1,7 @@
 public class Ders
 {
-    public int Id { get; set; }
-    public string? Ad { get; set; }
-    public string? Saatler { get; set; }
+    public int id { get; set; }
+    public string? ad { get; set; }
+    public string? saatler { get; set; }
 
 }
