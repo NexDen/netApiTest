@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "WgNXaV8iZwQ=",
+  "dgSpecHash": "DLfAuGoeVd0=",
   "success": true,
-  "projectFilePath": "/Users/yigitemin.kolan/RiderProjects/apiTest1/apiTest1/apiTest1.csproj",
+  "projectFilePath": "/Users/yigitemin.kolan/RiderProjects/netapitest/apiTest1.csproj",
   "expectedPackageFiles": [
     "/Users/yigitemin.kolan/.nuget/packages/azure.core/1.38.0/azure.core.1.38.0.nupkg.sha512",
     "/Users/yigitemin.kolan/.nuget/packages/azure.identity/1.11.4/azure.identity.1.11.4.nupkg.sha512",

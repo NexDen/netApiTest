@@ -2389,11 +2389,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/yigitemin.kolan/RiderProjects/apiTest1/apiTest1/apiTest1.csproj",
+      "projectUniqueName": "/Users/yigitemin.kolan/RiderProjects/netapitest/apiTest1.csproj",
       "projectName": "apiTest1",
-      "projectPath": "/Users/yigitemin.kolan/RiderProjects/apiTest1/apiTest1/apiTest1.csproj",
+      "projectPath": "/Users/yigitemin.kolan/RiderProjects/netapitest/apiTest1.csproj",
       "packagesPath": "/Users/yigitemin.kolan/.nuget/packages/",
-      "outputPath": "/Users/yigitemin.kolan/RiderProjects/apiTest1/apiTest1/obj/",
+      "outputPath": "/Users/yigitemin.kolan/RiderProjects/netapitest/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/yigitemin.kolan/.nuget/NuGet/NuGet.Config"
